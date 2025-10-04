@@ -46,9 +46,14 @@ _DEFAULT_BACKBONE_DROPOUT_RATE = 0.2
 
 _BACKBONES = {
     'inception_v3': tf.keras.applications.InceptionV3,
-    'efficientnetb03': tf.keras.applications.EfficientNetB3,
-    'nasnetlarge': tf.keras.applications.NASNetLarge,
-    'resnet152v2': tf.keras.applications.ResNet152V2
+    'efficientnetb0': tf.keras.applications.EfficientNetB0,
+    'efficientnetb1': tf.keras.applications.EfficientNetB1,
+    'efficientnetb2': tf.keras.applications.EfficientNetB2,
+    'efficientnetb3': tf.keras.applications.EfficientNetB3,
+    'efficientnetb4': tf.keras.applications.EfficientNetB4,
+    'efficientnetb5': tf.keras.applications.EfficientNetB5,
+    'efficientnetb6': tf.keras.applications.EfficientNetB6,
+    'efficientnetb7': tf.keras.applications.EfficientNetB7
 }
 
 def build_classification_head(inputs: tf.Tensor, l2: float = 0.0) -> tf.Tensor:
@@ -74,75 +79,6 @@ def build_classification_head(inputs: tf.Tensor, l2: float = 0.0) -> tf.Tensor:
   )
   return head(inputs)
 
-"""
-def add_l2_regularizers(
-    model: tf.keras.Model,
-    layer_class: Type[tf.keras.layers.Layer],
-    l2: float = _DEFAULT_WEIGHT_DECAY,
-    regularizer_attr: str = 'kernel_regularizer',
-) -> tf.keras.Model:
-  "Adds L2 regularizers to all `layer_class` layers in `model`.
-
-  Models from `tf.keras.applications` do not support specifying kernel or bias
-  regularizers. However, adding regularization is important when fine tuning
-  'imagenet' pretrained weights. In order to do this, this function updates the
-  current model's configuration to include regularizers and reloads the model so
-  that the newly created losses are registered.
-  Note: this will not overwrite existing `kernel_regularizer` regularizers on
-  the given layer.
-  Args:
-    model: The base model.
-    layer_class: We add regularizers to all layers of type `layer_class`.
-    l2: The l2 regularization factor.
-    regularizer_attr: The layer's regularizer attribute.
-
-  Returns:
-    A model with l2 regularization added to each `layer_class` layer.
-  ""
-  # Save the original model weights.
-  tmp_weights_dir = tempfile.gettempdir()
-  tmp_weights_path = os.path.join(tmp_weights_dir, 'tmp_weights.h5')
-  model.save_weights(tmp_weights_path)
-
-  # Clone the original model.
-  reg_model = tf.keras.models.clone_model(model)
-
-  # Set the L2 `regularizer_attr` on all layers of type `layer_class`. This
-  # change is only reflected in the model's config file.
-  num_regularizers_added = 0
-  for layer in reg_model.layers:
-    if not isinstance(layer, layer_class):
-      continue
-    if not hasattr(layer, regularizer_attr):
-      continue
-    if getattr(layer, regularizer_attr) is not None:
-      continue
-    setattr(layer, regularizer_attr, tf.keras.regularizers.l2(l2=l2))
-    num_regularizers_added += 1
-
-  # Save the updated model configuration.
-  reg_model_json = reg_model.to_json()
-
-  # Create a "new" model from the updated configuration and load the original
-  # model's weights.
-  reg_model = tf.keras.models.model_from_json(reg_model_json)
-  reg_model.load_weights(tmp_weights_path, by_name=True)
-
-  # Ensure model weights have not changed after adding regularization layers.
-  for layer, reg_layer in zip(model.layers, reg_model.layers):
-    weights = layer.weights
-    reg_weights = reg_layer.weights
-    if not weights:
-      assert not reg_weights
-    else:
-      for i, weight in enumerate(weights):
-        tf.debugging.assert_near(weight, reg_weights[i])
-
-  # Ensure the newly added regularizers are registered as losses.
-  assert len(reg_model.losses) == (len(model.losses) + num_regularizers_added)
-
-  return reg_model
-"""
 
 def add_l2_regularizers(
     model: tf.keras.Model,
@@ -559,7 +495,7 @@ def create_state(
 def get_model(
     config: ml_collections.ConfigDict,
 ) -> Union[tf.keras.Model, Callable[..., tf.keras.Model]]:
-  if config.model_type in {'inception_v3', 'efficientnetb03', 'nasnetlarge', 'resnet152v2'}:
+  if config.model_type in set(_BACKBONES.keys()):
     return inceptionv3
   else:
     raise ValueError('Unsupported model type.')
@@ -570,7 +506,7 @@ def get_model_preprocess_fn(
 ) -> Callable[[tf.train.Example], tf.train.Example]:
   """Returns the preprocess function for the model type."""
 
-  if config.model_type in {'inception_v3', 'efficientnetb03', 'nasnetlarge', 'resnet152v2'}:
+  if config.model_type in set(_BACKBONES.keys()):
     return dv_utils.preprocess_images
   else:
     raise ValueError('Unsupported model type.')

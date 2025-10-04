@@ -123,6 +123,7 @@ def input_fn(
   Returns:
     tf.data.Dataset
   """
+  tf.random.set_seed(config.seed)
 
   if mode not in ['train', 'tune', 'predict']:
     raise ValueError('Mode must be set to one of "train", "tune", or "predict"')
@@ -146,13 +147,13 @@ def input_fn(
   ds = tf.data.Dataset.from_tensor_slices(file_list)
 
   if is_training:
-    ds = ds.shuffle(ds.cardinality(), reshuffle_each_iteration=True)
+    ds = ds.shuffle(ds.cardinality(), seed=config.seed, reshuffle_each_iteration=True)
 
   ds = ds.interleave(
       load_dataset,
       cycle_length=config.input_read_threads,
       num_parallel_calls=tf.data.AUTOTUNE,
-      deterministic=False,
+      deterministic=True,
   )
 
   if is_training and n_epochs > 0:
@@ -160,7 +161,7 @@ def input_fn(
 
   if is_training:
     ds = ds.shuffle(
-        config.shuffle_buffer_elements, reshuffle_each_iteration=True
+        config.shuffle_buffer_elements, seed=config.seed, reshuffle_each_iteration=True
     )
 
   # Retrieve preprocess function
@@ -169,7 +170,7 @@ def input_fn(
   ds = ds.map(
       map_func=lambda example: parse_example(example, input_shape),
       num_parallel_calls=tf.data.AUTOTUNE,
-      deterministic=False,
+      deterministic=True,
   )
   ds = ds.batch(batch_size=config.batch_size, drop_remainder=True)
 
@@ -445,7 +446,7 @@ class DeepVariantInput(object):
     # For both TRAIN and EVAL, use the following to speed up.
     if self.sloppy:
       options = tf.data.Options()
-      options.experimental_deterministic = False
+      options.experimental_deterministic = True
       dataset = dataset.with_options(options)
     dataset = dataset.interleave(
         load_dataset,
@@ -510,7 +511,7 @@ class DeepVariantInput(object):
     )
     if self.sloppy:
       options = tf.data.Options()
-      options.experimental_deterministic = False
+      options.experimental_deterministic = True
       dataset = dataset.with_options(options)
     dataset = dataset.interleave(
         load_dataset,
@@ -538,7 +539,7 @@ def get_input_fn_from_dataset(dataset_config_filename, mode, **kwargs):
 
   Args:
     dataset_config_filename: str. Path to the dataset config pbtxt file.
-    mode: one of tf.estimator.ModeKeys.{TRAIN,EVAL,PREDICT}
+    mode: one of tf.estimator.ModeKeys.{TRAIN,EVAL,PREDICT} 
     **kwargs: Additional keyword arguments for DeepVariantInput.
 
   Returns:

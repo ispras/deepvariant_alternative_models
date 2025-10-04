@@ -30,7 +30,7 @@ ENV PYTHONPATH="/opt/deepvariant/bin/runfiles/com_google_deepvariant:\
 RUN set -eux; \
     apt-get update && \
     apt-get install -y python3-pip git zsh wget tmux && \
-    pip3 install --no-cache-dir jupyterlab
+    pip3 install --no-cache-dir jupyterlab optuna
 
 
 # Expose port for Jupyter Lab
