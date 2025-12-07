@@ -19,7 +19,7 @@ docker run \
    deepvariant:v1
 ```
 
-## Alternative Model Training
+## Train Alternative Models for DeepVariant
 
 From a Jupyter terminal or a shell inside the container, launch model training with `train.py`.
 
@@ -58,7 +58,7 @@ current-run
    └── logs.log         # Detailed training metrics and logs
 ```
 
-## Custom Model Integration and Testing
+## Run Whole DeepVariant Pipeline with Custom Model
 
 You can now run and test full DeepVariant pipeline using recently trained model with `test.sh`. Provide `current-run` directory; model details will be automatically loaded from `training/checkpoints/`. 
 You can also specify test dataset or restrict evaluation to specific chromosomes or regions. Variant call results will be saved to a VCF file, and `hap.py` testing will be launched automatically. 
@@ -77,7 +77,7 @@ current-run
    └── happy.output.summary     # Final evaluation metrics
 ```
 
-## Multi-Trial Training and Testing
+## (Optional) Multi-Trial Training and Testing
 
 You can orchestrate **multiple training/testing runs** using [Optuna](https://optuna.org/) to:
 - Automatically find **optimal hyperparameters** for training
