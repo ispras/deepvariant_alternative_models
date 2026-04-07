@@ -1,5 +1,5 @@
 # Alternative Neural Networks for DeepVariant
-[Homepage](https://agurianova.github.io/deepvariant-alternative-models/) | [Paper]()
+[Homepage](https://agurianova.github.io/deepvariant-alternative-models/) | [Paper](https://pubmed.ncbi.nlm.nih.gov/41516386/)
 
 This repository provides a workflow to 
 - train alternative models for DeepVariant
